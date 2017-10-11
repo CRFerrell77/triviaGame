@@ -1,5 +1,12 @@
 window.onload = function () {
 
+//Global Variables
+var qTimer;
+var qTimerPause = false;
+var totalCorrectAns = 0;
+var totalWrongAns = 0;
+var thisRndAns = [];
+var thisRndCorrect = "";
 
 
 function qCreate(qQuest, cAns, wAns0, wAns1, wAns2) {
@@ -19,7 +26,7 @@ function qCreate(qQuest, cAns, wAns0, wAns1, wAns2) {
     var Q04 = qCreate("Of the following titles, which is not mainly set in New York?", "the Hulk", "Spider-Man", "Luke Cage", "Captain America")
     var Q05 = qCreate("Superman's Metropolis was originally patterend after which US City?", "Cleveland, OH", "New York City, NY", "Chicago, IL", "Atlanta, GA")
     var Q06 = qCreate("Who was the first Marvel super hero to appear on the cover of a comic book? (hint: 1939)", "Human Torch", "Captain America", "Doctor Strange", "Cyclops")
-    var Q07 = qCreate("In the DC universe: who hold the alter ego 'the Oracle'?", "Barbara Gordon", "Selena Kyle", "Harleen Quinzel", "Julie Newmar")
+    var Q07 = qCreate("In the DC universe: who holds the alter ego 'the Oracle'?", "Barbara Gordon", "Selena Kyle", "Harleen Quinzel", "Julie Newmar")
     var Q08 = qCreate("Which Robin died at the hands of The Joker in the 'A Death in the Family' storyline?", "Jason Todd", "Alfred Pennyworth", "Dick Grayson", "Tim Drake")
     var Q09 = qCreate("To what color is the Green Lantern weak to?", "yellow", "brown", "puce (yes, that's a color)", "umber")
     var Q10 = qCreate("Wolverine, America's favorite Canadian, first appeared in which comic book?", "The Incredible Hulk", "DareDevil", "X-Men", "Alpha Flight")
@@ -38,22 +45,167 @@ function qCreate(qQuest, cAns, wAns0, wAns1, wAns2) {
     //console.log(Q01);
 
 var qArray = [Q01, Q02, Q03, Q04, Q05, Q06, Q07, Q08, Q09, Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21];
-
+//var thisRndQ = qCreate("", "", "", "", "")
 
 function setUp () {
 
+    $(".qRow").html("<h2>how many do you think you can get right?</h2>");
+    $(".answersRow").html("<p>game rules: for each question you will have 21 seconds to select the correct answer.</p>" + 
+    "<p>If you get all 21 right, you are a comic book trivia master!</p>");
+    $(".goGameBtn").html("go!");
+    $(".scoreRow").html("<h2>correct answers: 0</h2>" + "<h2>wrong answers: 0</h2>");
+    for (i=0; i<qArray.length; i++) {
+        qArray[i].usedQ = false;
+    }
 }
 
-function gameStart () {
+setUp();
 
-}
+//bind go button to loadQuestion
+$(".goGameBtn").on("click", function(ev){
+    loadQuestion(ev);
+});
 
-function checker () {
+function startTimer() {
+    //var anwer = round.questions_and_answers[round.q_index]["correct_answer"];
+    var target = $(".timer");
+    var timer = 30;
+    target.html(timer.toString() + " seconds remaining");
+    qTimer = setInterval(function(){
+        timer --;
+        target.html(timer.toString() + " seconds remaining");
+        if(timer < 1){wrongAnswer(round.answer)};
+    }, 1000);
+};
 
-}
+function loadQuestion () {
+
+    //hide "go" button
+    $(".goGameBtn").hide();
+    
+    //start the timer
+    startTimer();
+
+    //pick a question
+    var rndNum = Math.floor(Math.random()*20);
+    //double check to see if working: console.log(qArray[rndNum]);
+
+    if (!qArray[rndNum].usedQ) {
+
+        //set the right answer
+        thisRndCorrect = qArray[rndNum].correctAns;
+        //double check to see if working: 
+        console.log("this round's correct Ans: " + thisRndCorrect);
+
+        //get the answers into an array
+        var possibleAns = thisRndAns.concat(qArray[rndNum].correctAns, qArray[rndNum].wrong0, qArray[rndNum].wrong1, qArray[rndNum].wrong2);
+        //double check to see if working: console.log(possibleAns);
+
+        //get to da shuffle
+        shuffle(possibleAns);
+        //double check to see if working: console.log(possibleAns);
+
+        $(".qRow").html("<div><p>" + qArray[rndNum].question + "</p></div>");
+        
+        $(".answersRow").html(
+            "<div><button class='btn btn-lg btn-primary answer' id='guessA'>" + possibleAns[0] + "</button></div>" +
+            "<div><button class='btn btn-lg btn-primary answer' id='guessB'>" + possibleAns[1] + "</button></div>" +
+            "<div><button class='btn btn-lg btn-primary answer' id='guessC'>" + possibleAns[2] + "</button></div>" +
+            "<div><button class='btn btn-lg btn-primary answer' id='guessD'>" + possibleAns[3] + "</button></div>"
+        ); 
+        
+        //answer class divs check the answer
+        $(".answer").on("click", function(ev){
+            checkAns(ev);
+        });
+
+        //finally, set this question to be "used up"
+        setTimeout(setToUsed, 2000);
+        function setToUsed() {
+            qArray[rndNum].usedQ = true;
+            //double check to see if working: console.log(qArray[rndNum]);
+        };
+    };
+};
+
+function rightAns(){
+    totalCorrectAns ++;
+    
+    //clear the answer timer
+    clearInterval(qTimer);
+
+    //display message
+    $(".timer").html("<h2>That's Correct!</h2>");
+
+    //wait 3 seconds, then restart the answer timer and display next question
+    setTimeout(function(){
+        qTimerPause = false;
+        // if(round.q_index < round.questions_and_answers.length){
+        //     startTimer();
+        //     displayQuestion(round.questions_and_answers[round.q_index]);
+        // }
+        // else{
+        //     roundOver();
+        // };
+        console.log("next question");
+    }, 3000);
+};
+
+function wrongAns(thisRndCorrect){
+    totalWrongAns ++;
+
+    //clear the answer timer
+    clearInterval(qTimer);
+
+    //display message
+    $(".timer").html("no, the right answer was: " + thisRndCorrect);
+
+    //wait 3 seconds, then restart the answer timer and display next question
+    setTimeout(function(){
+        qTimerPause = false;
+        // if(round.q_index < round.questions_and_answers.length){
+        //     startTimer();
+        //     displayQuestion(round.questions_and_answers[round.q_index]);
+        // }
+        // else{
+        //     roundOver();
+        // };
+        console.log("next question");
+    }, 3000);
+};
 
 
+function checkAns(ev) {
+    //grab the "answer"
+    var userGuess = $("#" + ev.currentTarget.id).html();
+    console.log("this guess: " + userGuess);
 
+    if(!qTimerPause){
+        qTimerPause = true;
+        
+        //check if guess is equal to the correct answer
+        if(userGuess == thisRndCorrect){
+            rightAns();
+        }
+        else{
+            wrongAns(thisRndCorrect);
+        };
+    };
+};
+
+//stolen from stack!
+function shuffle(a) {
+    for (let i = a.length; i; i--) {
+        let j = Math.floor(Math.random() * i);
+        [a[i - 1], a[j]] = [a[j], a[i - 1]];
+    };
+};
+
+//answer class divs check the answer
+$(".answer").on("click", function(ev){
+    // console.log("answer button clicked");
+    checkAns(ev);
+});
 
 
 
