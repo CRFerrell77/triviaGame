@@ -8,6 +8,7 @@ var totalWrongAns = 0;
 var thisRndAns = [];
 var thisRndCorrect = "";
 var totalQ = 0;
+var newTime = 0;
 
 function qCreate(qQuest, cAns, wAns0, wAns1, wAns2) {
     output = {};
@@ -57,6 +58,7 @@ function setUp () {
     thisRndAns = [];
     thisRndCorrect = "";
     totalQ = 0;
+    thisRndQ = 0;
 
     shuffle(qArray);
 
@@ -80,12 +82,18 @@ $(".goGameBtn").on("click", function(ev){
 
 function startTimer() {
     var target = $(".timer");
-    var timer = 2;
+    var timer = 21;
     target.html(timer.toString() + " seconds remaining");
     qTimer = setInterval(function(){
         timer --;
         target.html(timer.toString() + " seconds remaining");
-        if(timer < 1){wrongAns(thisRndCorrect)};
+        if(timer < 1){
+            //clear the answer timer
+            clearInterval(qTimer);
+
+            // wrongAns(thisRndCorrect)
+            checkAns(null);
+        };
     }, 1000);
 };
 
@@ -105,12 +113,12 @@ function loadQuestion() {
 
         //add to the total Q's asked so far
         totalQ++;
-        console.log("total Q's so far: " + totalQ);
+        //console.log("total Q's so far: " + totalQ);
 
         //set the right answer
         thisRndCorrect = qArray[thisRndQ].correctAns;
         //double check to see if working: 
-        console.log("this round's correct Ans: " + thisRndCorrect);
+        //console.log("this round's correct Ans: " + thisRndCorrect);
 
         //get the answers into an array
         var possibleAns = thisRndAns.concat(qArray[thisRndQ].correctAns, qArray[thisRndQ].wrong0, qArray[thisRndQ].wrong1, qArray[thisRndQ].wrong2);
@@ -138,7 +146,7 @@ function loadQuestion() {
 
 function rightAns(){
     totalCorrectAns ++;
-    console.log("total right: " + totalCorrectAns);
+    //console.log("total right: " + totalCorrectAns);
 
     //display message
     $(".timer").html("<h2>That's Correct!</h2>");
@@ -146,7 +154,7 @@ function rightAns(){
 
 function wrongAns(thisRndCorrect){
     totalWrongAns ++;
-    console.log("total wrong: " + totalWrongAns);
+    //console.log("total wrong: " + totalWrongAns);
 
     //display message
     $(".timer").html("<h2>No, the right answer was: " + thisRndCorrect +"</h2>");
@@ -154,13 +162,20 @@ function wrongAns(thisRndCorrect){
 
 
 function checkAns(ev) {
+    $(".answer").unbind("click");
     //grab the "answer"
-    var userGuess = $("#" + ev.currentTarget.id).html();
-    console.log("this guess: " + userGuess);
+    var userGuess;
+    if (ev == null) {
+        userGuess = "null"
+    } else {
+        userGuess = $("#" + ev.currentTarget.id).html();
+    }
+    //console.log("this guess: " + userGuess);
     thisRndQ ++;
 
     //clear the answer timer
     clearTimeout(qTimer);
+    clearTimeout(newTime);
 
     if(!qTimerPause){
         qTimerPause = true;
@@ -177,10 +192,12 @@ function checkAns(ev) {
         results();
     } else {
     //wait 1.5 seconds, then restart the answer timer and display next question
-    setTimeout(function(){
+    newTime = setTimeout(function(){
         loadQuestion();
-        }, 1000);
+        }, 2000);
+        $(".answer").unbind("click");
     };
+
 };
 
 //stolen from stack!
