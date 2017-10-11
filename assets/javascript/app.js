@@ -134,12 +134,6 @@ function loadQuestion() {
             checkAns(ev);
         });
 
-        //finally, set this question to be "used up"
-        setTimeout(setToUsed, 500);
-        function setToUsed() {
-            qArray[thisRndQ].usedQ = true;
-            //double check to see if working: console.log(qArray[rndNum]);
-        };
 };
 
 function rightAns(){
@@ -181,7 +175,7 @@ function checkAns(ev) {
     console.log("this guess: " + userGuess);
     thisRndQ ++;
 
-    if (thisRndQ == 21) {
+    if (thisRndQ == 22) {
         results();
     } else if(!qTimerPause){
         qTimerPause = true;
