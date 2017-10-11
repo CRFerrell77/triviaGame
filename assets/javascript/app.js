@@ -7,7 +7,7 @@ var totalCorrectAns = 0;
 var totalWrongAns = 0;
 var thisRndAns = [];
 var thisRndCorrect = "";
-
+var totalQ = 0;
 
 function qCreate(qQuest, cAns, wAns0, wAns1, wAns2) {
     output = {};
@@ -19,6 +19,7 @@ function qCreate(qQuest, cAns, wAns0, wAns1, wAns2) {
     output.usedQ = false;
     return output;
 }
+
 // Questions and Answers 
     var Q01 = qCreate("In what year did Disney buy Marvel Comics?", "2009", "2006", "2011", "2013")
     var Q02 = qCreate("What flagship comic title launched in 1961 and led the way for Marvel after their rebranding?", "Fantastic 4", "X-Men", "Spider-Man", "DareDevil")
@@ -42,21 +43,32 @@ function qCreate(qQuest, cAns, wAns0, wAns1, wAns2) {
     var Q20 = qCreate("Alan Moore has been behind many famous comic book titles. Which of the following is not his work?", "Y: the Last Man", "Watchmen", "V for Vendetta", "Batman: the Killing Joke")
     var Q21 = qCreate("J.K. Rowling approved the first-ever 'Harry Potter' comic — for a great reason. The comic's proceeds go toward the victims and survivors of the Pulse nightclub shooting. Who will be the publisher?", "DC", "Image", "Marvel", "Darkhorse")
 
-    //console.log(Q01);
 
 var qArray = [Q01, Q02, Q03, Q04, Q05, Q06, Q07, Q08, Q09, Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21];
-//var thisRndQ = qCreate("", "", "", "", "")
+
+var thisRndQ = 0;
 
 function setUp () {
+    //resert Global Variables
+    qTimer;
+    qTimerPause = false;
+    totalCorrectAns = 0;
+    totalWrongAns = 0;
+    thisRndAns = [];
+    thisRndCorrect = "";
+    totalQ = 0;
+
+    shuffle(qArray);
 
     $(".qRow").html("<h2>how many do you think you can get right?</h2>");
     $(".answersRow").html("<p>game rules: for each question you will have 21 seconds to select the correct answer.</p>" + 
     "<p>If you get all 21 right, you are a comic book trivia master!</p>");
     $(".goGameBtn").html("go!");
-    $(".scoreRow").html("<h2>correct answers: 0</h2>" + "<h2>wrong answers: 0</h2>");
-    for (i=0; i<qArray.length; i++) {
-        qArray[i].usedQ = false;
-    }
+    $(".goGameBtn").show();
+    $(".scoreRow").html("<h2>correct answers: 0 -- wrong answers: 0</h2>");
+    $(".timer").html("");
+    $(".goAgain").html("Try again?");
+    $(".goAgain").hide();
 }
 
 setUp();
@@ -67,45 +79,48 @@ $(".goGameBtn").on("click", function(ev){
 });
 
 function startTimer() {
-    //var anwer = round.questions_and_answers[round.q_index]["correct_answer"];
     var target = $(".timer");
-    var timer = 30;
+    var timer = 21;
     target.html(timer.toString() + " seconds remaining");
     qTimer = setInterval(function(){
         timer --;
         target.html(timer.toString() + " seconds remaining");
-        if(timer < 1){wrongAnswer(round.answer)};
+        if(timer < 1){wrongAns(thisRndCorrect)};
     }, 1000);
 };
 
-function loadQuestion () {
+function loadQuestion() {
 
-    //hide "go" button
+    //hide "go" button, scores
     $(".goGameBtn").hide();
+    $(".scoreRow").hide();
     
     //start the timer
+    qTimerPause = false;
     startTimer();
+    
+    //if (!qArray[rndNum].usedQ) {
 
-    //pick a question
-    var rndNum = Math.floor(Math.random()*20);
-    //double check to see if working: console.log(qArray[rndNum]);
+    qArray[thisRndQ]
 
-    if (!qArray[rndNum].usedQ) {
+        //add to the total Q's asked so far
+        totalQ++;
+        console.log("total Q's so far: " + totalQ);
 
         //set the right answer
-        thisRndCorrect = qArray[rndNum].correctAns;
+        thisRndCorrect = qArray[thisRndQ].correctAns;
         //double check to see if working: 
         console.log("this round's correct Ans: " + thisRndCorrect);
 
         //get the answers into an array
-        var possibleAns = thisRndAns.concat(qArray[rndNum].correctAns, qArray[rndNum].wrong0, qArray[rndNum].wrong1, qArray[rndNum].wrong2);
+        var possibleAns = thisRndAns.concat(qArray[thisRndQ].correctAns, qArray[thisRndQ].wrong0, qArray[thisRndQ].wrong1, qArray[thisRndQ].wrong2);
         //double check to see if working: console.log(possibleAns);
 
         //get to da shuffle
         shuffle(possibleAns);
         //double check to see if working: console.log(possibleAns);
 
-        $(".qRow").html("<div><p>" + qArray[rndNum].question + "</p></div>");
+        $(".qRow").html("<div><p>" + qArray[thisRndQ].question + "</p></div>");
         
         $(".answersRow").html(
             "<div><button class='btn btn-lg btn-primary answer' id='guessA'>" + possibleAns[0] + "</button></div>" +
@@ -120,58 +135,43 @@ function loadQuestion () {
         });
 
         //finally, set this question to be "used up"
-        setTimeout(setToUsed, 2000);
+        setTimeout(setToUsed, 500);
         function setToUsed() {
-            qArray[rndNum].usedQ = true;
+            qArray[thisRndQ].usedQ = true;
             //double check to see if working: console.log(qArray[rndNum]);
         };
-    };
 };
 
 function rightAns(){
     totalCorrectAns ++;
-    
+    console.log("total right: " + totalCorrectAns);
+
     //clear the answer timer
-    clearInterval(qTimer);
+    clearTimeout(qTimer);
 
     //display message
     $(".timer").html("<h2>That's Correct!</h2>");
 
-    //wait 3 seconds, then restart the answer timer and display next question
+    //wait 1.5 seconds, then restart the answer timer and display next question
     setTimeout(function(){
-        qTimerPause = false;
-        // if(round.q_index < round.questions_and_answers.length){
-        //     startTimer();
-        //     displayQuestion(round.questions_and_answers[round.q_index]);
-        // }
-        // else{
-        //     roundOver();
-        // };
-        console.log("next question");
-    }, 3000);
+        loadQuestion();
+    }, 1500);
 };
 
 function wrongAns(thisRndCorrect){
     totalWrongAns ++;
+    console.log("total wrong: " + totalWrongAns);
 
     //clear the answer timer
-    clearInterval(qTimer);
+    clearTimeout(qTimer);
 
     //display message
-    $(".timer").html("no, the right answer was: " + thisRndCorrect);
+    $(".timer").html("<h2>No, the right answer was: " + thisRndCorrect +"</h2>");
 
-    //wait 3 seconds, then restart the answer timer and display next question
+    //wait 1.5 seconds, then restart the answer timer and display next question
     setTimeout(function(){
-        qTimerPause = false;
-        // if(round.q_index < round.questions_and_answers.length){
-        //     startTimer();
-        //     displayQuestion(round.questions_and_answers[round.q_index]);
-        // }
-        // else{
-        //     roundOver();
-        // };
-        console.log("next question");
-    }, 3000);
+        loadQuestion();
+    }, 1500);
 };
 
 
@@ -179,15 +179,17 @@ function checkAns(ev) {
     //grab the "answer"
     var userGuess = $("#" + ev.currentTarget.id).html();
     console.log("this guess: " + userGuess);
+    thisRndQ ++;
 
-    if(!qTimerPause){
+    if (thisRndQ == 21) {
+        results();
+    } else if(!qTimerPause){
         qTimerPause = true;
         
         //check if guess is equal to the correct answer
         if(userGuess == thisRndCorrect){
             rightAns();
-        }
-        else{
+        } else {
             wrongAns(thisRndCorrect);
         };
     };
@@ -207,9 +209,16 @@ $(".answer").on("click", function(ev){
     checkAns(ev);
 });
 
+function results () {
+    $(".goAgain").show();
+    $(".scoreRow").show();
+    $(".scoreRow").html("<h2>correct answers: " + totalCorrectAns + " -- wrong answers: " + totalWrongAns + "</h2>");
+}
 
-
-
+//bind go button to loadQuestion
+$(".goAgain").on("click", function(){
+    setUp();
+});
 
 
 
