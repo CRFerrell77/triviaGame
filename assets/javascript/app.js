@@ -80,7 +80,7 @@ $(".goGameBtn").on("click", function(ev){
 
 function startTimer() {
     var target = $(".timer");
-    var timer = 21;
+    var timer = 2;
     target.html(timer.toString() + " seconds remaining");
     qTimer = setInterval(function(){
         timer --;
@@ -140,32 +140,16 @@ function rightAns(){
     totalCorrectAns ++;
     console.log("total right: " + totalCorrectAns);
 
-    //clear the answer timer
-    clearTimeout(qTimer);
-
     //display message
     $(".timer").html("<h2>That's Correct!</h2>");
-
-    //wait 1.5 seconds, then restart the answer timer and display next question
-    setTimeout(function(){
-        loadQuestion();
-    }, 1500);
-};
+ };
 
 function wrongAns(thisRndCorrect){
     totalWrongAns ++;
     console.log("total wrong: " + totalWrongAns);
 
-    //clear the answer timer
-    clearTimeout(qTimer);
-
     //display message
     $(".timer").html("<h2>No, the right answer was: " + thisRndCorrect +"</h2>");
-
-    //wait 1.5 seconds, then restart the answer timer and display next question
-    setTimeout(function(){
-        loadQuestion();
-    }, 1500);
 };
 
 
@@ -175,9 +159,10 @@ function checkAns(ev) {
     console.log("this guess: " + userGuess);
     thisRndQ ++;
 
-    if (thisRndQ == 22) {
-        results();
-    } else if(!qTimerPause){
+    //clear the answer timer
+    clearTimeout(qTimer);
+
+    if(!qTimerPause){
         qTimerPause = true;
         
         //check if guess is equal to the correct answer
@@ -186,6 +171,15 @@ function checkAns(ev) {
         } else {
             wrongAns(thisRndCorrect);
         };
+    };
+
+    if (thisRndQ == 21) {
+        results();
+    } else {
+    //wait 1.5 seconds, then restart the answer timer and display next question
+    setTimeout(function(){
+        loadQuestion();
+        }, 1000);
     };
 };
 
